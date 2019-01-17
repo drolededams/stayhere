@@ -1,0 +1,17 @@
+int main (void)
+{
+	
+	char str[100]; [esp+0x28]
+	fgets(str, 100, stdin);
+	i = 0;
+	len = strlen(str);
+	while (i <  len)
+	{
+		if (!(str[i] <= '@' || str[i] > 'Z'))
+			str[i] = str[i] - 0x20;
+		(len = strlen(str))
+		i++;
+	}
+	printf(str);
+	exit(0);
+}
