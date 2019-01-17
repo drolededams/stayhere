@@ -1,0 +1,51 @@
+int main(void)
+{
+	pid_t pid = fork(); ([esp+0xac])
+	char buf[32]; [esp+0x20]
+	memset(buf, 0 ,32);
+	int *status = 0; [esp+0x1c]
+
+	if (pid != 0)
+	{
+		while (1)
+		{
+			wait(status);
+			if((status and 0x7f) == 0)
+			{
+				puts("child is exiting...");
+				return (0);
+			}
+			else
+			{
+				int status2 = status [esp+0xa4]
+				status2 = status2 and 0x7f;
+				status2 += 1;
+				status2 /=2;
+				if (status2 < 0)
+				{
+					puts("child is exiting...");
+					return (0);
+				}
+				else
+				{
+					long res_pt =ptrace(PT_READ_U, pid, 44, 0);
+					if (res_pt == 11)
+					{
+						puts("no exec() for you");
+						kill(pid, 9);
+						return(0);
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		prctl(1, 1);
+		ptrace(PTRACE_TRACEME, 0, 0, 0);
+		puts("Give me some shellcode, k");
+		gets(buf);
+		return(0);
+	}
+	return (0);
+}

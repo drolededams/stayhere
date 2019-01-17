@@ -1,0 +1,85 @@
+int prog_timeout() {
+    asm{ int        0x80 };
+    return 0x1;
+}
+
+void clear_stdin() {
+    do {
+            var_9 = getchar();
+            if (var_9 == 0xa) {
+                break;
+            }
+            if (var_9 == 0xff) {
+                break;
+            }
+    } while (true);
+    return;
+}
+
+int get_unum() {
+    eax = *stdout@@GLIBC_2.0;
+    fflush(eax);
+    __isoc99_scanf(0x80489c0, 0x0);
+    clear_stdin();
+    return 0x0;
+}
+
+int decrypt(int arg0) {
+    stack[2048] = arg0;
+    var_C = *0x14;
+    esp = esp - 0x4;
+    COND = eax == 0x0;
+    if (!COND) {
+            esp = esp + 0x4;
+    }
+    esp = esp + 0x4;
+    ecx = 0xffffffff;
+    asm{ repne scasb al, byte [es:edi] };
+    var_24 = !ecx - 0x1;
+    for (var_28 = 0x0; var_28 < var_24; var_28 = var_28 + 0x1) {
+            *(int8_t *)(0x757c7d51 + var_28) = arg0 ^ *(int8_t *)(0x757c7d51 + var_28) & 0xff;
+    }
+    if (sign_extend_32((asm{ rep  cmpsb byte [ds:esi], byte [es:edi] } ? 0x1 : 0x0) - (COND_BYTE_SET(L))) == 0x0) {
+            eax = system("/bin/sh");
+    }
+    else {
+            eax = puts("\nInvalid Password");
+    }
+    esi = var_C ^ *0x14;
+    COND = esi == 0x0;
+    if (!COND) {
+            eax = __stack_chk_fail();
+    }
+    return eax;
+}
+
+int test(int arg0, int arg1) {
+    var_C = arg1 - arg0;
+    if (var_C <= 0x15) {
+            eax = *((var_C << 0x2) + 0x80489f0);
+            eax = (eax)();
+    }
+    else {
+            eax = rand();
+            eax = decrypt(eax);
+    }
+    return eax;
+}
+
+
+int main() {
+    esp = (esp & 0xfffffff0) - 0x20 - 0x4;
+    COND = eax == 0x0;
+    if (!COND) {
+            esp = esp + 0x4;
+    }
+    eax = time(0x0);
+    srand(eax);
+    puts("***********************************");
+    puts("*\t\tlevel03\t\t**");
+    puts("***********************************");
+    printf("Password:");
+    __isoc99_scanf(0x8048a85, esp + 0x20);
+    test(0x8048a85, 0x1337d00d);
+    return 0x0;
+}

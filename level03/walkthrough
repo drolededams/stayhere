@@ -1,0 +1,41 @@
+Le programme nous demande un pasword. Des calculs sont effectués avec celui-ci. Le premier est :
+
+diff = 322424845 - password;
+
+En fonction de la valeur de "diff", le programme prends des chemins différents :
+
+---
+
+if (diff <= 21)
+	decrypt(diff);
+else
+	decrypt(rand());
+
+---
+
+Gardons donc en tete que si nous voulons avoir plus de controle sur la suite du programme, il faudra mette en password un chiffre entre 322424845 et 322424824 
+
+Dans la fonction decrypt, on comprend que son paramètre est une clé qui permet de decrypter "Q}|u`sfg~sf{}|a3". Si le résultat du decryptage est "Congratulations!" system("/bin/sh") est appelé.
+
+Une boucle permet de modifier toutes les lettres de "Q}|u`sfg~sf{}|a3" grace à la clé.
+Voici la boucle :
+
+   0x080486c7 <+103>:	lea    eax,[ebp-0x1d]
+   0x080486ca <+106>:	add    eax,DWORD PTR [ebp-0x28]
+   0x080486cd <+109>:	movzx  eax,BYTE PTR [eax]
+   0x080486d0 <+112>:	mov    edx,eax
+   0x080486d2 <+114>:	mov    eax,DWORD PTR [ebp+0x8]
+   0x080486d5 <+117>:	xor    eax,edx
+=> 0x080486d7 <+119>:	mov    edx,eax
+   0x080486d9 <+121>:	lea    eax,[ebp-0x1d]
+   0x080486dc <+124>:	add    eax,DWORD PTR [ebp-0x28]
+   0x080486df <+127>:	mov    BYTE PTR [eax],dl
+   0x080486e1 <+129>:	add    DWORD PTR [ebp-0x28],0x1
+   0x080486e5 <+133>:	mov    eax,DWORD PTR [ebp-0x28]
+   0x080486e8 <+136>:	cmp    eax,DWORD PTR [ebp-0x24]
+   0x080486eb <+139>:	jb     0x80486c7 <decrypt+103>
+
+Le bon password est donc surement situé entre 322424845 et 322424824 pour avoir la bonne clé.
+
+
+En testant les diverses possibilités, le bon password est : 322424827

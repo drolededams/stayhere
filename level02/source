@@ -1,0 +1,50 @@
+int main(void) {
+    int ret  = 0;
+	char pass[40];
+	char user[100];
+	char u_pass[100];
+	FILE *file;
+
+	memset(pass, 41, 0);
+	memset(user, 100, 0);
+	memset(u_pass, 100, 0);
+    file = fopen("/home/users/level03/.pass", "r");
+    if (filw == 0) {
+            fwrite("ERROR: failed to open password file\n", 1, 36, stderr);
+            ret = exit(1);
+    }
+    else {
+            int size = fread(pass, 1, 41, file);
+			pass[strcspn(pass, "\n")] = 0;
+            if (size != 41) {
+                    fwrite("ERROR: failed to read password file\n", 1, 36, stderr);
+                    fwrite("ERROR: failed to read password file\n", 1, 36, stderr);
+                    ret = exit(1);
+            }
+            else {
+                    fclose(file);
+                    puts("===== [ Secure Access System v1.0 ] =====");
+                    puts("/***************************************\");
+                    puts("| You must login to access this system. |");
+                    puts("\**************************************/");
+                    printf("--[ Username: ");
+                    fgets(user, 100, stdin);
+					user[strcspn(user, "\n")] = 0;
+                    printf("--[ Password: ");
+                    fgets(u_pass, 100, stdin);
+					u_pass[strcspn(u_pass, "\n")] = 0;
+                    puts("*****************************************");
+                    if (strncmp(pass, u_pass, 41) == 0) {
+                            printf("Greetings, %s!\n", var_70);
+                            system("/bin/sh");
+                            ret = 0;
+                    }
+                    else {
+                            printf(user);
+                            puts(" does not have access!");
+                            ret = exit(1);
+                    }
+            }
+    }
+    return ret;
+}
