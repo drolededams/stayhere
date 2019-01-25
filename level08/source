@@ -19,7 +19,7 @@ int     main(int ac, char **av)
 
 	if (ac != 2)
 		printf("Usage: %s filename\n", av[0]);
-	file_1 = fopen("./backups/.log", "w";
+	file_1 = fopen("./backups/.log", "w");
 	if (!file_1) {
 		printf("ERROR: Failed to open %s\n", "./backups/.log");
 		extit(1);
