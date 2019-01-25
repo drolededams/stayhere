@@ -52,13 +52,3 @@ int     main(int ac, char **av)
 	}
 	return (0);
 }
-
-var_70 | var_110 = dest_buf;
-var_71 = c;
-var_78 = fd;
-var_88 = file_1;
-bar_80 = file_2;
-var_A0 = av[1];
-0x400da9 = "r"
-0x400d6b = "w"
-
