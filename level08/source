@@ -1,16 +1,9 @@
 int log_wrapper(int arg0, int arg1, int arg2) {
     var_8 = *0x28;
-    strcpy(&var_110, arg1);
-    rsi = arg2;
-    rcx = 0xffffffffffffffff;
-    asm { repne scasb al, byte [rdi] };
-    r8 = (0xfe - !rcx) + 0x1;
-    rcx = 0xffffffffffffffff;
-    asm { repne scasb al, byte [rdi] };
-    snprintf(&var_110 + (!rcx - 0x1), r8, rsi);
-    rax = strcspn(&var_110, "\n");
-    *(int8_t *)(rbp + (rax - 0x110)) = 0x0;
-    fprintf(arg1, "LOG: %s\n", &var_110);
+    strcpy(dest_buff, arg1);
+    snprintf(dest_buff + strlen(arg2), strlen(arg2) - 255, arg2);
+    dest_buff[strcspn(dest_buff, "\n")] = '\0';
+    fprintf(arg1, "LOG: %s\n", dest_buff);
     rax = var_8 ^ *0x28;
     return rax;
 }
@@ -22,6 +15,7 @@ int     main(int ac, char **av)
 {
 	int		fd;
 	char	c;
+	char	*dst_buff;
 	FILE	*file_1;
 	FILE	*file_2;
 
@@ -38,15 +32,9 @@ int     main(int ac, char **av)
 			printf("ERROR: Failed to open %s\n", av[1]);
 			exit(1);
 		} else {
-
-			 var_70 = *(int64_t *)"./backups/";
-			*(int16_t *)(&var_70 + 0x8) = *(int16_t *)("./backups/" + 0x8) & 0xffff;
-			*(int8_t *)(&var_70 + 0xa) = *(int8_t *)("./backups/" + 0xa) & 0xff;
-			rcx = 0xffffffffffffffff;
-			asm { repne scasb al, byte [rdi] };
-			strncat(&var_70, av[1], (0x63 - !rcx) + 0x1);
-
-			fd = open(&var_70, 0xc1);
+			strcpy(dest_buf, BACKUP_DIR);
+			strncat(dest_buf, argv[1], 100 - strlen(dest_buf) -1);
+			fd = open(dest_buf, 0xc1);
 			if (fd < 0) {
 				printf("ERROR: Failed to open %s%s\n", "./backups/", av[1]);
 				exit(1);1
@@ -69,6 +57,7 @@ int     main(int ac, char **av)
 	return (0);
 }
 
+var_70 | var_110 = dest_buf;
 var_71 = c;
 var_78 = fd;
 var_88 = file_1;
