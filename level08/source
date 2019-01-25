@@ -1,11 +1,9 @@
 int log_wrapper(int arg0, int arg1, int arg2) {
-    var_8 = *0x28;
     strcpy(dest_buff, arg1);
     snprintf(dest_buff + strlen(arg2), strlen(arg2) - 255, arg2);
     dest_buff[strcspn(dest_buff, "\n")] = '\0';
     fprintf(arg1, "LOG: %s\n", dest_buff);
-    rax = var_8 ^ *0x28;
-    return rax;
+    return (0);
 }
 
 var_118 = arg0;
@@ -46,11 +44,9 @@ int     main(int ac, char **av)
 					}
 					write(fd, &c, 1);
 				}
-				var_8 = *0x28;
 				log_wrapper(file_1, "Finished back up ", av[1]);
 				fclose(file_2);
 				close(fd);
-				rdi = var_8 ^ *0x28;
 			}
 		}
 	}
