@@ -6,9 +6,6 @@ int log_wrapper(int arg0, int arg1, int arg2) {
     return (0);
 }
 
-var_118 = arg0;
-
-
 int     main(int ac, char **av)
 {
 	int		fd;
@@ -30,7 +27,7 @@ int     main(int ac, char **av)
 			printf("ERROR: Failed to open %s\n", av[1]);
 			exit(1);
 		} else {
-			strcpy(dest_buf, BACKUP_DIR);
+			strcpy(dest_buf, "./backups/");
 			strncat(dest_buf, argv[1], 100 - strlen(dest_buf) -1);
 			fd = open(dest_buf, 0xc1);
 			if (fd < 0) {
