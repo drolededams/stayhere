@@ -1,5 +1,4 @@
 int log_wrapper(int arg0, int arg1, int arg2) {
-    var_118 = arg0;
     var_8 = *0x28;
     strcpy(&var_110, arg1);
     rsi = arg2;
@@ -9,19 +8,20 @@ int log_wrapper(int arg0, int arg1, int arg2) {
     rcx = 0xffffffffffffffff;
     asm { repne scasb al, byte [rdi] };
     snprintf(&var_110 + (!rcx - 0x1), r8, rsi);
-    rax = strcspn(&var_110, 0x400d4c);
+    rax = strcspn(&var_110, "\n");
     *(int8_t *)(rbp + (rax - 0x110)) = 0x0;
-    fprintf(var_118, "LOG: %s\n", &var_110);
+    fprintf(arg1, "LOG: %s\n", &var_110);
     rax = var_8 ^ *0x28;
-    if (rax != 0x0) {
-            rax = __stack_chk_fail();
-    }
     return rax;
 }
+
+var_118 = arg0;
+
 
 int     main(int ac, char **av)
 {
 	int		fd;
+	char	c;
 	FILE	*file_1;
 	FILE	*file_2;
 
@@ -39,29 +39,25 @@ int     main(int ac, char **av)
 			exit(1);
 		} else {
 
-
-
-
-
 			 var_70 = *(int64_t *)"./backups/";
 			*(int16_t *)(&var_70 + 0x8) = *(int16_t *)("./backups/" + 0x8) & 0xffff;
 			*(int8_t *)(&var_70 + 0xa) = *(int8_t *)("./backups/" + 0xa) & 0xff;
 			rcx = 0xffffffffffffffff;
 			asm { repne scasb al, byte [rdi] };
-			strncat(&var_70, *(var_A0 + 0x8), (0x63 - !rcx) + 0x1);
+			strncat(&var_70, av[1], (0x63 - !rcx) + 0x1);
+
 			fd = open(&var_70, 0xc1);
 			if (fd < 0) {
 				printf("ERROR: Failed to open %s%s\n", "./backups/", av[1]);
-				exit(1);
+				exit(1);1
 			}
 			else {
-				do {
-					var_71 = fgetc(file_2);
-					if ((var_71 & 0xff) == 0xff) {
+				while (c = fgetc(file_2)) {
+					if ((c & 0xff) == 0xff) {
 						break;
 					}
-					write(fd, &var_71, 1);
-				} while (true);
+					write(fd, &c, 1);
+				}
 				var_8 = *0x28;
 				log_wrapper(file_1, "Finished back up ", av[1]);
 				fclose(file_2);
@@ -73,9 +69,11 @@ int     main(int ac, char **av)
 	return (0);
 }
 
+var_71 = c;
 var_78 = fd;
 var_88 = file_1;
 bar_80 = file_2;
 var_A0 = av[1];
 0x400da9 = "r"
 0x400d6b = "w"
+
