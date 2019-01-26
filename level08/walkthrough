@@ -1,5 +1,5 @@
 La demarche est simple:
-pour pouvoir faire l exploit il suffit de recrée la meme arborescence que l'argument passé en parametre dans le binaire (../home/users/level09/.pass) depuis le /tmp et d'executé la commande depuis le /tmp
+pour pouvoir faire l exploit il suffit de recrée la meme arborescence que l'argument passé en parametre dans le binaire (../home/users/level09/.pass) depuis le /tmp et d'executé le binaire level08 depuis le /tmp
 nous n avons pas les droits d'ecriture sur le dossier level09/backups du coup quand nous essayons de lancé en arguments ../home/users/level09/.pass
 le path est bien reconnu mais quand le strncat modifie le path pour l ouvrir avec open il y ajoute ./backups (./backups/../home/users/level09/.pass) open n a pas la capacité de crée des dossiers comme opendir
 du coup en creant cette architecture dans le tmp:
