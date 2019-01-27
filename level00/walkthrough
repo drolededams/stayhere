@@ -1,0 +1,3 @@
+Pour recupéré le flag il suffisait seulement de satisfaire la comparaison dans le binaire
+si l'input saisie etait bon , le binaire executait un shell avec le droit level01.
+Ainsi nous avons pu afficher le contenu de level01/.pass
