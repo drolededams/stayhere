@@ -1,12 +1,35 @@
-int     set_username(char *buff) 
-{
+int set_username(char *buff) {
+    var_98 = arg0;
+    asm{ rep stosq  qword [ds:rdi], rax };
+    puts(">: Enter your username");//0x555555554be4
+    printf(">>: "); //0x555555554bdf
+    fgets(var_90, 128, stdin);
+	/*int i = 0;
+	while (i <= 40 && buff[i] ?)
+            if ((*(int8_t *)(rbp + sign_extend_32(var_4) + 0xffffffffffffff70) & 0xff) == 0x0) {
+                break;
+            }
+            *(int8_t *)(var_98 + sign_extend_32(var_4) + 0x8c) = *(int8_t *)(rbp + sign_extend_32(var_4) + 0xffffffffffffff70) & 0xff;
+    }*/
+	strncpy(str, buff, 41);
+    rax = printf(">: Welcome, %s", str);
+    return rax;
+}
+
+int set_msg(char *buff) {
+    var_408 = buff;
+    asm{ rep stosq  qword [ds:rdi], rax };
     puts(">: Msg @Unix-Dude");
-    printf(">>: ");
+    printf(">>: "); //0x555555554bdf
+    fgets(var_400, 0x400, stdin);
+    rax = *(int32_t *)(var_408 + 0xb4);
+    rax = strncpy(var_408, var_400, sign_extend_64(rax));
+    return rax;
 }
 
 int    handle_msg(void)
 {
-    char *buff;
+    char *buff;//rbp-0xc0
 
     set_username(buff);
     set_msg(buff);
@@ -22,3 +45,7 @@ int     main(void)
 
     return (0);
 }
+
+
+
+
