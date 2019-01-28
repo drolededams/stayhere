@@ -1,96 +1,63 @@
-int auth(char *buf [ebp + 0x8], unsigned int serial) {
-	size_t len; [ebp - 0xc]
-	char c; [ebp -0x10]
+int auth(char *buff, unsigned int serial) {
+	unsigned int	len;
+	unsigned int	i;
+	unsigned int	crypt_1;
+	unsigned int	crypt_2;
+	uint64_t		crypt_3;
+	unsigned int	key;
 
     buff[(strcspn(buff, "\n")] = 0;
-    len = strnlen(buff, 32);   (eax = len; push eax;) ebp-0xc
-    /*COND = eax == 0x0;
-    if (!COND) {
-            esp = esp + 0x4;
-    }*/
-    if (len > 5) goto loc_8048796;
+    len = strnlen(buff, 32);
+
+	if (len > 5)
 	{
-		loc_8048796:
-		if (ptrace(PTRACE_TRACEME, 0, 1, 0) != 0xffffffff) goto loc_80487ed;
+		if (ptrace(PTRACE_TRACEME, 0, 1, 0) != 0xffffffff);
 		{
-			loc_80487ed:
-				c = buff[3] ^ 0x1337 + 6221293; [ebp - 0x10]
-				a = 0;							[ebp - 0x14]
-				goto loc_804885b;
-				loc_804885b:
-					while(a < len) goto loc_804880f;
-					{
-					loc_804880f:
-						if ((a + buf[0]) > 31) goto loc_8048823;
-						loc_8048823:
-							ecx = a + buff[0] ^ c;
-							eax = ecx;
-							eax *= 2284010283;
-							eax = ecx;
-							eax -= 2284010283;
-							eax /= 2;
-							eax += 2284010283;
-							eax /= 1024;
-							eax *= 1337
-							edx = ecx;
-							edx -= eax;
-							eax = edx;
-							c += eax;
-							a += 1;
-							goto loc_804885b;
-						else
-							return (1);
-					}
-					else
-						goto loc_8048863
-						loc_8048863:
-							if (serial != c) {
-									eax = 0x1;
-							}
-							else {
-									eax = 0x0;
-							}
-							return eax;
+			key = (buff[3] ^ 0x1337) + 6221293;
+			i = 0;
+			while(i < len)
+			{
+				if ((buf[i]) > 31)
+				{
+					crypt_1  = av[1][i] ^ key;
+
+					crypt_3 = crypt_1 * 2284010283;
+					crypt_3 = crypt_3 >> 32;
+
+					crypt_2 = crypt_1;
+					crypt_2 -= (unsigned int)crypt_3;
+					crypt_2 /= 2;
+					crypt_2 += (unsigned int)crypt_3;
+					crypt_2 /= 1024;
+					crypt_2 *= 1337;
+
+					crypt_1 -= crypt_2;
+
+					key += crypt_1;
+					i += 1;
+				}
+				else
+					return (1);
+			}
+			if (serial != key)
+					return (1);
+			return (0);
 		}
 		else
 		{
-			puts(0x8048a68);
-			puts(0x8048a8c);//!! TAMPERING DETECTED !!
-			puts(0x8048ab0);
+			puts(".---------------------------.");
+			puts("| !! TAMPERING DETECTED !!  |");
+			puts("'---------------------------'");
 			return(1);
 		}
 	}
 	else
 		return (1);
-
-loc_804878c:
-    return (1);
-
-
-loc_80487bf:
-    eax = 0x1;
-    return eax;
-
-
-
-
-
-loc_804881c:
-    eax = 0x1;
-    return eax;
-
 }
 
 int main(void) {
-    esp = (esp & 0xfffffff0) - 0x50 - 0x4;
-    COND = eax == 0x0;
-    if (!COND) {
-            esp = esp + 0x4;
-    }
-
-	int ret = 0;
-	char buff[44]; [esp + 0x2c]
-	unsigned int serial; [esp + 0x28]
+	char buff[44];
+	unsigned int serial;
 
     puts("***********************************");
     puts("*\t\tlevel06\t\t  *");
@@ -102,20 +69,10 @@ int main(void) {
     puts("***********************************");
     printf("-> Enter Serial: ");
     scanf("%u", serial);
-    stack[2028] = esp + 0x30;
     if (auth(buff, serial) == 0) {
             puts("Authenticated!");
             system("/bin/sh");
-            ret = 0;
+            return (0);
     }
-    else {
-            ret = 1;
-    }
-    edx = stack[2028] ^ *0x14;
-    COND = edx == 0x0;
-    if (!COND) {
-            ret = __stack_chk_fail();
-    }
-    return ret;
+    return (1);
 }
-

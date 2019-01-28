@@ -1,0 +1,61 @@
+Si le retour de la fonction "auth" == 0 alors system("/bin/sh") est appelé.
+
+Pour cela, il faut que le chiffrage du "login" par la fonction "auth" soit égale au "Serial" entré.
+
+Ici, deux manières de procéder :
+
+1 -
+On lance le programme via GDB. On entre en "Login" une string > 5 charactères (condition obligatoire), puis un "serial" quelconque.
+Mettre un Breakpoint à l'adresse où la comparaison du serial avec le résultat du chiffrage est effectuée :
+
+8048866:       3b 45 f0                cmp    eax,DWORD PTR [ebp-0x10] ; afficher le résultat du chiffrage via gdb ici
+
+Mettre un Breakpoint pour contourner le check du Tampering : 
+80487ba:       83 f8 ff                cmp    eax,0xffffffff ; set eax à une valeur différente de 0xffffffff vi gdb
+
+relancer le programme en utilisant le meme login et le serial trouvé.
+
+
+---------
+
+(gdb) r
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/users/level06/level06
+***********************************
+*level06  *				
+***********************************
+-> Enter Login: AAAAAA
+***********************************
+***** NEW ACCOUNT DETECTED ********
+***********************************
+-> Enter Serial: 1
+
+Breakpoint 2, 0x080487ba in auth ()
+(gdb) set $eax=1
+(gdb) n
+Single stepping until exit from function auth,
+which has no line number information.
+
+Breakpoint 9, 0x08048866 in auth ()
+(gdb) x/xw $ebp-0x10
+0xffffd688:0x005f0c3a
+(gdb) p 0x005f0c3a
+$4 = 6	229050
+
+level06@OverRide:~$ ./level06
+***********************************
+*level06  *
+***********************************
+-> Enter Login: AAA				AAA
+***********************************
+***** NEW ACCOUNT DETECTED ********
+***********************************
+-> Enter Serial: 6229050
+Authenticated!
+
+---------
+
+2- Recréer l'algo de chiffrage pour générer un serial à partir d'un login.
+
+On peut ici utiliser gen_serial.c en Ressources.
