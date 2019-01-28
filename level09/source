@@ -4,6 +4,23 @@ int     set_username(char *buff)
     printf(">>: ");
 }
 
+int set_username(char *buff) {
+    asm { rep stosq  qword [rdi], rax };
+    puts(">: Enter your username");
+    printf(">>: ");
+    fgets(&var_90, 128, stdin);
+    for (int i = 0; i <= 40; i++) {
+            if ((*(int8_t *)(rbp + (sign_extend_32(i) - 0x90)) & 0xff) == 0x0) {
+                break;
+            }
+            *(int8_t *)(buff + sign_extend_32(i) + 0x8c) = *(int8_t *)(rbp + (sign_extend_32(i) - 0x90)) & 0xff;
+    }
+    return (printf(">: Welcome, %s", buff + 0x8c));
+}
+
+var_4 = i
+var_98 = buff
+
 int    handle_msg(void)
 {
     char *buff;
@@ -17,8 +34,5 @@ int     main(void)
 {
     puts("--------------------------------------------\n|   ~Welcome to l33t-m$n ~    v1337        |\n--------------------------------------------");
     handle_msg();
-
-    pop rbp ???? exploit?
-
     return (0);
 }
