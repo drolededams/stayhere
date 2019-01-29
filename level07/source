@@ -73,11 +73,11 @@ int main(int ac, char **av, char **env)
 		printf("Input command: ");
 		fgets(buff, 20, stdin);
 		buff[strlen(buff) - 1] = '\0';
-		if ((ret = strncmp(buff, "store", 5)) == 0)
-			store_number(data);
-		else if ((ret = strncmp(buff, "read", 4)) == 0)
-			read_number(data);
-		else if ((ret = strncmp(buff, "quit", 4)) == 0)
+		if (!strncmp(buff, "store", 5))
+			ret = store_number(data);
+		else if (!strncmp(buff, "read", 4))
+			ret = read_number(data);
+		else if (!strncmp(buff, "quit", 4))
 			break;
 		if (ret == 0)
 			printf(" Completed %s command successfully\n", buff);
