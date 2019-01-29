@@ -17,7 +17,6 @@ int set_username(struct data data) {
 
 int set_msg(struct data data) {
 	char buff[1024];
-    asm{ rep stosq  qword [ds:rdi], rax };
     puts(">: Msg @Unix-Dude");
     printf(">>: ");
     fgets(buff, 1024, stdin);
