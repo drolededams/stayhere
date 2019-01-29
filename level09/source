@@ -1,55 +1,35 @@
-int set_username(char *buff) {
-    var_98 = arg0;
-    asm{ rep stosq  qword [ds:rdi], rax };
-    puts(">: Enter your username");//0x555555554be4
-    printf(">>: "); //0x555555554bdf
-    fgets(var_90, 128, stdin);
-	/*int i = 0;
-	while (i <= 40 && buff[i] ?)
-            if ((*(int8_t *)(rbp + sign_extend_32(var_4) + 0xffffffffffffff70) & 0xff) == 0x0) {
-                break;
-            }
-            *(int8_t *)(var_98 + sign_extend_32(var_4) + 0x8c) = *(int8_t *)(rbp + sign_extend_32(var_4) + 0xffffffffffffff70) & 0xff;
-    }*/
-	strncpy(str, buff, 41);
-    rax = printf(">: Welcome, %s", str);
-    return rax;
+int secret_backdoor() {
+	char buff[128];
+	fgets(buff, 128, stdin);
+	return(system(buff));
 }
 
-int set_msg(char *buff) {
-    var_408 = buff;
-    asm{ rep stosq  qword [ds:rdi], rax };
-    puts(">: Msg @Unix-Dude");
-    printf(">>: "); //0x555555554bdf
-    fgets(var_400, 0x400, stdin);
-    rax = *(int32_t *)(var_408 + 0xb4);
-    rax = strncpy(var_408, var_400, sign_extend_64(rax));
-    return rax;
-}
 
-int set_username(char *buff) {
-    asm { rep stosq  qword [rdi], rax };
+int set_username(struct data data) {
+	char buff[128];
+	fgets(buff, 128, stdin);
     puts(">: Enter your username");
     printf(">>: ");
-    fgets(&var_90, 128, stdin);
-    for (int i = 0; i <= 40; i++) {
-            if ((*(int8_t *)(rbp + (sign_extend_32(i) - 0x90)) & 0xff) == 0x0) {
-                break;
-            }
-            *(int8_t *)(buff + sign_extend_32(i) + 0x8c) = *(int8_t *)(rbp + (sign_extend_32(i) - 0x90)) & 0xff;
-    }
-    return (printf(">: Welcome, %s", buff + 0x8c));
+    fgets(buff, 128, stdin);
+	strncpy(data.username, buff, 41);
+    return (printf(">: Welcome, %s", str));
 }
 
-var_4 = i
-var_98 = buff
+int set_msg(struct data data) {
+	char buff[1024];
+    asm{ rep stosq  qword [ds:rdi], rax };
+    puts(">: Msg @Unix-Dude");
+    printf(">>: ");
+    fgets(buff, 1024, stdin);
+    return(strncpy(data.msg, buff, data.len));
+}
 
 int    handle_msg(void)
 {
-    char *buff;//rbp-0xc0
-
-    set_username(buff);
-    set_msg(buff);
+    struct data  data;
+	data.len = 140;
+    set_username(data);
+    set_msg(data);
     return (puts(">: Msg sent!"));
 }
 
