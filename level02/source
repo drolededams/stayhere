@@ -9,7 +9,7 @@ int main(void) {
 	memset(user, 100, 0);
 	memset(u_pass, 100, 0);
     file = fopen("/home/users/level03/.pass", "r");
-    if (filw == 0) {
+    if (file == 0) {
             fwrite("ERROR: failed to open password file\n", 1, 36, stderr);
             ret = exit(1);
     }
