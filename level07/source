@@ -1,135 +1,90 @@
 void clear_stdin()
 {
-    int c;
-    while (c = getchar())
-    {
-        if (c == 0xa)
-            break;
-        if (c == 0xff)
-            break;
-    }
-    return;
+	int c;
+	while ((c = getchar() != '\n') && c != EOF)
+		;
 }
 
-int get_unum()
+int get_unum(void)
 {
-    unsigned int value;
+	unsigned int value;
 
-    fflush(*stdout@@GLIBC_2.0);
-    __isoc99_scanf("%u", value);
-    clear_stdin();
-    return (value);
+	fflush(stdout);
+	scanf("%u", &value);
+	clear_stdin();
+	return (value);
 }
 
 int store_number(unsigned int *data)
 {
-    int             ret;
-    unsigned int    value_1;
-    unsigned int    value_2;
+	int             ret;
+	unsigned int    value_1;
+	unsigned int    value_2;
 
-    printf(" Number: ");
-    value = get_unum();
-    printf(" Index: ");
-    value_2 = get_unum();
-    if (value % 3 == 0)
-    {
-            data[value_2] = value;
-            ret = 0;
-    }
-    else 
-    {
-            puts(" *** ERROR! ***");
-            puts("   This index is reserved for wil!");
-            puts(" *** ERROR! ***");
-            ret = 1;
-    }
-    return (ret);
+	printf(" Number: ");
+	value_1 = get_unum();
+	printf(" Index: ");
+	value_2 = get_unum();
+	if (value_2 % 3 != 0)
+	{
+		data[value_2] = value_1;
+		ret = 0;
+	}
+	else 
+	{
+		puts(" *** ERROR! ***");
+		puts("   This index is reserved for wil!");
+		puts(" *** ERROR! ***");
+		ret = 1;
+	}
+	return (ret);
 }
 
 int read_number(unsigned int *data)
 {
-    unsigned int value;
+	unsigned int value;
 
-    printf(" Index: ");
-    value = get_unum();
-    printf(" Number at data[%u] is %u\n", value, data[value]);
-    return (value);
+	printf(" Index: ");
+	value = get_unum();
+	printf(" Number at data[%u] is %u\n", value, data[value]);
+	return (value);
 }
 
 int main(int ac, char **av, char **env)
 {
-    char *buff;
-    asm { rep stosd  dword [edi], eax };
-    
-    while (*av != NULL) {
-            memset(*av, 0, strlen(*av));
-            av++;
-    }
-    while (*env != NULL) {
-            memset(*env, 0, !ecx - 0x1);
-            env++;
-    }
-    puts("----------------------------------------------------
-        Welcome to wil's crappy number storage service!
-        ----------------------------------------------------
-        Commands:
-            store - store a number into the data storage
-            read  - read a number from the data storage
-            quit  - exit the program
-        ----------------------------------------------------
-        wil has reserved some storage :>
-        ----------------------------------------------------");
+	int     ret = 1;
+	char    buff[20];
+	unsigned int *data;
 
+	while (*av != NULL)
+	{
+		memset(*av, 0, strlen(*av));
+		av++;
+	}
 
-
-
-var_24 = buff;
-var_28 = number;
-
-loc_804884f:
-    var_24 = 0x0;
-    printf("Input command: ");
-    var_28 = 0x1;
-    var_1DC = &var_24;
-    fgets(var_1DC, 0x14, *stdin@@GLIBC_2.0);
-    ecx = 0xffffffff;
-    asm { repne scasb al, byte [edi] };
-    *(int8_t *)(esp + (!ecx - 0x2) + 0x1b8) = 0x0;
-    if (sign_extend_32((COND_BYTE_SET(G)) - (COND ? 0x1 : 0x0)) != 0x0) goto loc_80488f8;
-
-loc_80488e3:
-    eax = store_number(&var_1B8);
-    var_28 = eax;
-    goto loc_8048965;
-
-loc_8048965:
-    if (var_28 != 0x0) {
-            var_24 = 0x0;
-            printf(" Failed to do %s command\n", &var_24);
-    }
-    else {
-            var_24 = 0x0;
-            printf(" Completed %s command successfully\n", &var_24);
-    }
-    var_24 = 0x0;
-    var_24 = 0x0;
-    *(&var_24 + 0x4) = 0x0;
-    *(&var_24 + 0x8) = 0x0;
-    *(&var_24 + 0xc) = 0x0;
-    *(&var_24 + 0x10) = 0x0;
-    goto loc_804884f;
-
-loc_80488f8:
-    if (sign_extend_32((COND_BYTE_SET(G)) - (COND ? 0x1 : 0x0)) != 0x0) goto loc_8048939;
-
-loc_8048924:
-    eax = read_number(&var_1B8);
-    var_28 = eax;
-    goto loc_8048965;
-
-loc_8048939:
-    if (sign_extend_32((COND_BYTE_SET(G)) - (COND ? 0x1 : 0x0)) == 0x0) goto loc_80489cf;
-    goto loc_8048965;
-
-    return (0);
+	while (*env != NULL)
+	{
+		memset(*env, 0, strlen(*env));
+		env++;
+	}
+	puts("----------------------------------------------------\n  Welcome to wil's crappy number storage service!\n----------------------------------------------------\n Commands:\n    store - store a number into the data storage\n    read  - read a number from the data storage\n    quit  - exit the program\n----------------------------------------------------\n   wil has reserved some storage :>\n----------------------------------------------------");
+	while (1)
+	{
+		printf("Input command: ");
+		fgets(buff, 20, stdin);
+		buff[strlen(buff) - 1] = '\0';
+		if ((ret = strncmp(buff, "store", 5)) == 0)
+			store_number(data);
+		else if ((ret = strncmp(buff, "read", 4)) == 0)
+			read_number(data);
+		else if ((ret = strncmp(buff, "quit", 4)) == 0)
+			break;
+		if (ret == 0)
+			printf(" Completed %s command successfully\n", buff);
+		else
+			printf(" Failed to do %s command\n", buff);
+		bzero(buff, 20);
+	}
+	return (0);
 }
+
