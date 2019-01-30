@@ -20,18 +20,15 @@ int decrypt(int arg0) {
 
 int test(int arg0, int arg1)
 {
-	void	*ptr;
 	int 	value = arg1 - arg0;
 
 	if (value <= 21) {
-		ptr = *((var_C << 0x2) + 0x80489f0);
-		ptr = (ptr)();
+		decrypt(value);
 	}
 	else {
-		ptr = rand();
-		ptr = decrypt(ptr);
+		decrypt(rand());
 	}
-	return eax;
+	return (1);
 }
 
 
